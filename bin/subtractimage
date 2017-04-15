@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+
+import argparse
+from SubtractSim.subtract import subtract_images
+
+parser = argparse.ArgumentParser(description='Subtract images given in file.')
+
+parser.add_argument('--images', dest='images',
+                    help='Text file containing image, reference pairs')
+parser.add_argument('--subtraction', dest='subtraction', nargs='+',
+                    help="Type of subtraction to use (PyZOGY or Hotpants)")
+
+args = parser.parse_args()
+
+subtract_images(args.images, args.subtraction)
+
+

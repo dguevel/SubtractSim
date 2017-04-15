@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+
+import argparse
+import SubtractSim.generateimage
+import numpy as np
+
+parser = argparse.ArgumentParser(description='Generate images with fake transients.')
+
+parser.add_argument('--magnitude', dest='magnitude', nargs='+',
+                    help='List of apparent magnitudes of the transient in the reference frame')
+parser.add_argument('--science-image', dest='science_image', help='Science image to add transient')
+parser.add_argument('--science-psf', dest='science_psf', help='PSF for the science image')
+parser.add_argument('--science-mask', dest='science_mask', help='Mask for the science image', default='None')
+parser.add_argument('--reference-image', dest='reference_image', help='Reference image to scale to')
+parser.add_argument('--reference-psf', dest='reference_psf', help='PSF for the reference image')
+parser.add_argument('--reference-mask', dest='reference_mask', help='Mask for the reference image', default='None')
+parser.add_argument('--n-stamps', dest='n_stamps', help='Number of stamps to use when fitting the sky level',
+                    default=1, type=int)
+parser.add_argument('--flux-ratio', dest='flux_ratio',
+                    help='Flux ratio between the science and reference image', default=np.inf, type=float)
+
+args = parser.parse_args()
+magnitude = np.array([float(mag) for mag in args.magnitude])
+
+SubtractSim.generateimage.make_fake_image(args.science_image,
+                                            args.science_psf,
+                                            args.reference_image,
+                                            args.reference_psf,
+                                            magnitude,
+                                            args.flux_ratio,
+                                            image_mask=args.science_mask,
+                                            reference_mask=args.reference_mask)
+
+
