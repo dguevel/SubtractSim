@@ -1,5 +1,24 @@
 import os
 from PyZOGY.subtract import run_subtraction
+from SubtractSim.generateimage import degs2coords, sexa2deg
+from astropy.io import fits
+import numpy as np
+
+
+def do_photometry(filename, science_image, aperture_rad = 20):
+    """Do aperture photometry on the difference image"""
+
+    image_data = fits.getdata(filename)
+    image_header = fits.getheader(science_image)
+    sexa_ra, sexa_dec = image_header['RA'], image_header['DEC']
+    ra, dec = sexa2deg(sexa_ra, sexa_dec)
+    x, y = degs2coords(ra, dec, image_header)
+    x, y = [round(float(coord)) for coord in (x, y)]
+    xind, yind = np.indices(image_data.shape)
+    phot_pix = np.hypot(x - xind, y - yind) <= aperture_rad
+    flux = np.sum(image_data[phot_pix])
+    print(flux)
+    return -2.5 * np.log(flux)
 
 
 def subtract_images(image_list, subtraction_type):
@@ -8,13 +27,15 @@ def subtract_images(image_list, subtraction_type):
     for subtraction in subtraction_type:
         images = open(image_list)
         for image in images:
-            files = image.split(',')
+            files = image[:-1].split()
             science_image = files[0]
             science_psf = files[1]
             science_mask = files[2]
             reference_image = files[3]
             reference_psf = files[4]
-            reference_mask = files[5][:-1]
+            reference_mask = files[5]
+
+        output = science_image.replace('.fits', '.diff.fits')
 
         if subtraction == 'PyZOGY':
 
@@ -23,8 +44,6 @@ def subtract_images(image_list, subtraction_type):
             if 'None' in reference_mask:
                 reference_mask = ''
 
-            output = science_image.replace('.fits', '.diff.fits')
-
             run_subtraction(science_image,
                             reference_image,
                             science_psf,
@@ -32,10 +51,17 @@ def subtract_images(image_list, subtraction_type):
                             output=output,
                             science_mask=science_mask,
                             reference_mask=reference_mask,
-                            n_stamps=4)
+                            n_stamps=8,
+                            science_saturation=90000,
+                            reference_saturation=90000,
+                            normalization='science',
+                            photometry=True,
+                            matched_filter=False)
 
         elif subtraction == 'hotpants':
-            command = 'hotpants -inim {0} -tmplim {1} -outim -{2} imi {3} -tmi {4}' + science_mask.format(
+            command = 'hotpants -inim {0} -tmplim {1} -outim {2} -imi {3} -tmi {4}'.format(
                 science_image, reference_image, output, science_mask, reference_mask)
-
+            print(command)
             os.system(command)
+
+        do_photometry(output, science_image)

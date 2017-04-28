@@ -8,6 +8,22 @@ from PyZOGY.util import solve_iteratively
 import os
 
 
+def degs2coords(ra, dec, header):
+    """Converts RA and DEC into coordinates on image; taken from ryan's code"""
+
+    w = wcs.WCS(header)
+    return w.all_world2pix(ra, dec, 0)
+
+
+def find_flux_ratio(image, image_psf, reference, reference_psf, image_mask='', reference_mask='', n_stamps=4):
+    """Calculate flux required to generate a transient"""
+
+    science = ImageClass(image, image_psf, mask_filename=image_mask, n_stamps=n_stamps)
+    reference = ImageClass(reference, reference_psf, mask_filename=reference_mask, n_stamps=n_stamps)
+    flux_ratio = solve_iteratively(science, reference)
+    return flux_ratio
+
+
 def implant_transient(flux, image_filename, psf_filename):
     """Make an image containing a fake transient; contains code from ryan"""
 
@@ -23,6 +39,39 @@ def implant_transient(flux, image_filename, psf_filename):
     return image + fake_transient
 
 
+def make_fake_image(image, image_psf, reference, reference_psf, flux,
+                    flux_ratio=1, image_mask='None', reference_mask='None'):
+    """Make an image with a fake transient of given flux as seen in the reference image"""
+
+    output_list = ''
+    path = os.getcwd() + '/'
+
+    for fl in flux:
+        fl *= 1
+        print(fl)
+        fake_image = implant_transient(fl, image, image_psf)
+
+        output_file = image.replace('.fits', '.fake.fits')
+        image_list = [output_file, image_psf, image_mask, reference, reference_psf, reference_mask]
+        image_list_path = []
+        for im in image_list:
+            if im != 'None':
+                image_list_path.append(path + im)
+            else:
+                image_list_path.append(im)
+
+        hdu = fits.open(image)
+        print(hdu[0].header['ra'], hdu[0].header['dec'])
+        hdu[0].data = fake_image
+        hdu.writeto(output_file, overwrite=True, output_verify='warn')
+
+        output_list += '{0} {1} {2} {3} {4} {5}\n'.format(*image_list_path)
+
+    file = open('images.txt', 'w')
+    file.write(output_list)
+    file.close()
+
+
 def make_transient(flux, psf, shape, coords):
     """Plant a make a fake transient"""
 
@@ -31,60 +80,11 @@ def make_transient(flux, psf, shape, coords):
     s = psf.shape
     ystart = int(coords[0] - s[0] / 2)
     xstart = int(coords[1] - s[1] / 2)
-    fake_image[ystart:ystart+s[0],xstart:xstart+s[1]] = transient
+    fake_image[ystart: ystart + s[0], xstart: xstart + s[1]] = transient
     return fake_image
 
 
-def find_flux_ratio(image, image_psf, reference, reference_psf, image_mask='', reference_mask='', n_stamps=4):
-    """Calculate flux required to generate a transient"""
-
-    science = ImageClass(image, image_psf, mask_filename=image_mask, n_stamps=n_stamps)
-    reference = ImageClass(reference, reference_psf, mask_filename=reference_mask, n_stamps=n_stamps)
-    flux_ratio = solve_iteratively(science, reference)
-    return flux_ratio
-
-
-def make_fake_image(image, image_psf, reference, reference_psf, magnitude,
-                    flux_ratio=np.inf, image_mask='None', reference_mask='None'):
-    """Make an image with a fake transient of given magnitude as seen in the reference image"""
-
-    if flux_ratio == np.inf:
-        flux_ratio = find_flux_ratio(image, image_psf, reference, reference_psf,
-                                     image_mask=image_mask, reference_mask=reference_mask)
-    output_list = ''
-    path = os.getcwd() + '/'
-
-    for mag in magnitude:
-        flux = 10 ** (-mag / 2.5)
-        print(flux)
-        flux *= flux_ratio
-        print(flux, flux_ratio)
-        fake_image = implant_transient(flux, image, image_psf)
-
-        output_file = 'mag{}.fits'.format(str(mag))
-        image_list = [output_file, image_psf, image_mask, reference, reference_psf, reference_mask]
-        image_list_path = []
-        for image in image_list:
-            if image != 'None':
-                image_list_path.append(path + image)
-            else:
-                image_list_path.append(image)
-        fits.writeto(output_file, fake_image, overwrite=True, output_verify='warn')
-        output_list += '{0},{1},{2},{3},{4},{5}\n'.format(*image_list_path)
-
-    file = open('images.txt', 'w')
-    file.write(output_list)
-    file.close()
-
-
-def degs2coords(ra, dec, header):
-    """Converts RA and DEC into coordinates on image; taken from ryan's code"""
-
-    w = wcs.WCS(header)
-    return w.all_world2pix(ra,dec,0)
-
-
-def sexa2deg(ra,dec):
+def sexa2deg(ra, dec):
     """Convert sexagesimal to degree; taken from ryan's code"""
 
     ra = coordinates.Angle(ra, units.hour).degree

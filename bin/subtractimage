@@ -7,7 +7,7 @@ parser = argparse.ArgumentParser(description='Subtract images given in file.')
 
 parser.add_argument('--images', dest='images',
                     help='Text file containing image, reference pairs')
-parser.add_argument('--subtraction', dest='subtraction', nargs='+',
+parser.add_argument('--subtraction', dest='subtraction', nargs='+', type = str,
                     help="Type of subtraction to use (PyZOGY or Hotpants)")
 
 args = parser.parse_args()
