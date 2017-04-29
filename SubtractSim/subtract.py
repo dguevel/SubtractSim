@@ -30,30 +30,21 @@ def subtract_images(image_list, subtraction_type):
             files = image[:-1].split()
             science_image = files[0]
             science_psf = files[1]
-            science_mask = files[2]
-            reference_image = files[3]
-            reference_psf = files[4]
-            reference_mask = files[5]
+            reference_image = files[2]
+            reference_psf = files[3]
 
         output = science_image.replace('.fits', '.diff.fits')
 
         if subtraction == 'PyZOGY':
-
-            if 'None' in science_mask:
-                science_mask = ''
-            if 'None' in reference_mask:
-                reference_mask = ''
 
             run_subtraction(science_image,
                             reference_image,
                             science_psf,
                             reference_psf,
                             output=output,
-                            science_mask=science_mask,
-                            reference_mask=reference_mask,
                             n_stamps=8,
-                            science_saturation=90000,
-                            reference_saturation=90000,
+                            science_saturation=60000,
+                            reference_saturation=60000,
                             normalization='science',
                             photometry=True,
                             matched_filter=False)
