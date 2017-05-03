@@ -44,23 +44,24 @@ def make_fake_image(image, image_psf, reference, reference_psf, flux,
     """Make an image with a fake transient of given flux as seen in the reference image"""
 
     output_list = ''
-    path = os.getcwd() + '/'
 
-    for fl in flux:
-        print(fl)
-        fake_image = implant_transient(fl, image, image_psf)
+    hdu = fits.open(image)
+    ra, dec = hdu[0].header['ra'], hdu[0].header['dec']
+    print('Inserting transient with {0} counts at {1}, {2}.'.format(flux, ra, dec))
+    fake_image = implant_transient(flux, image, image_psf)
 
-        output_file = image.replace('.fits', '.fake.fits')
-        image_list = [output_file, image_psf, reference, reference_psf]
+    output_file = image.replace('.fits', '.{0}.fake.fits'.format(int(flux)))
+    image_list = [output_file, image_psf, reference, reference_psf]
 
-        hdu = fits.open(image)
-        print(hdu[0].header['ra'], hdu[0].header['dec'])
-        hdu[0].data = fake_image
-        hdu.writeto(output_file, overwrite=True, output_verify='warn')
+    hdu = fits.open(image)
 
-        output_list += '{0} {1} {2} {3}\n'.format(*image_list)
+    hdu[0].data = fake_image
+    hdu.writeto(output_file, overwrite=True, output_verify='warn')
 
-    file = open('images.txt', 'w')
+    output_list += '{0} {1} {2} {3}\n'.format(*image_list)
+
+
+    file = open('images.txt', 'a')
     file.write(output_list)
     file.close()
 

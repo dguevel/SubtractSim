@@ -2,11 +2,11 @@
 
 import argparse
 import SubtractSim.generateimage
-import numpy as np
+import os
 
 parser = argparse.ArgumentParser(description='Generate images with fake transients.')
 
-parser.add_argument('--flux', dest='flux', nargs='+',
+parser.add_argument('--flux', dest='flux',
                     help='List of apparent fluxes of the transient in the reference frame')
 parser.add_argument('--science-image', dest='science_image', help='Science image to add transient')
 parser.add_argument('--science-psf', dest='science_psf', help='PSF for the science image')
@@ -16,32 +16,30 @@ parser.add_argument('--reference-psf', dest='reference_psf', help='PSF for the r
 parser.add_argument('--reference-mask', dest='reference_mask', help='Mask for the reference image', default='None')
 parser.add_argument('--n-stamps', dest='n_stamps', help='Number of stamps to use when fitting the sky level',
                     default=1, type=int)
-parser.add_argument('--flux-ration', dest='flux_ratio',
-                    help='Flux ratio between the science and reference image', default=0, type=float)
 help_str = 'File of images, image psfs, image masks, references, reference psfs, reference masks, mags to subtract'
 parser.add_argument('--image-list', dest='image_list', default='', help=help_str)
 
 args = parser.parse_args()
 
 if args.image_list == '':
-    flux = np.array([float(mag) for mag in args.flux])
     SubtractSim.generateimage.make_fake_image(args.science_image,
                                               args.science_psf,
                                               args.reference_image,
                                               args.reference_psf,
-                                              flux,
+                                              float(flux),
                                               args.flux_ratio,
                                               image_mask=args.science_mask,
                                               reference_mask=args.reference_mask)
 
 else:
     image_file = open(args.image_list, 'r')
+    os.system('rm images.txt')
     for line in image_file:
-        image, image_psf, reference, reference_psf, reference_mask, flux = line[:-1].split()
+        image, image_psf, image_mask, reference, reference_psf, reference_mask, flux = line[:-1].split()
         SubtractSim.generateimage.make_fake_image(image,
                                                   image_psf,
                                                   reference,
                                                   reference_psf,
-                                                  [float(flux)],
+                                                  float(flux),
                                                   image_mask=image_mask,
                                                   reference_mask=reference_mask)

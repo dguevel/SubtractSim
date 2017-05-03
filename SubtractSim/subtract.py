@@ -33,26 +33,26 @@ def subtract_images(image_list, subtraction_type):
             reference_image = files[2]
             reference_psf = files[3]
 
-        output = science_image.replace('.fits', '.diff.fits')
+            output = science_image.replace('.fits', '.diff.fits')
 
-        if subtraction == 'PyZOGY':
+            if subtraction == 'PyZOGY':
 
-            run_subtraction(science_image,
-                            reference_image,
-                            science_psf,
-                            reference_psf,
-                            output=output,
-                            n_stamps=8,
-                            science_saturation=60000,
-                            reference_saturation=60000,
-                            normalization='science',
-                            photometry=True,
-                            matched_filter=False)
+                run_subtraction(science_image,
+                                reference_image,
+                                science_psf,
+                                reference_psf,
+                                output=output,
+                                n_stamps=8,
+                                science_saturation=60000,
+                                reference_saturation=60000,
+                                normalization='science',
+                                photometry=True,
+                                matched_filter=False)
 
-        elif subtraction == 'hotpants':
-            command = 'hotpants -inim {0} -tmplim {1} -outim {2} -imi {3} -tmi {4}'.format(
-                science_image, reference_image, output, science_mask, reference_mask)
-            print(command)
-            os.system(command)
+            elif subtraction == 'hotpants':
+                command = 'hotpants -inim {0} -tmplim {1} -outim {2}'.format(
+                    science_image, reference_image, output)
+                print(command)
+                os.system(command)
 
-        do_photometry(output, science_image)
+            do_photometry(output, science_image)
