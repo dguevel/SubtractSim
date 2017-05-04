@@ -33,7 +33,7 @@ def subtract_images(image_list, subtraction_type):
             reference_image = files[2]
             reference_psf = files[3]
 
-            output = science_image.replace('.fits', '.diff.fits')
+            output = science_image.split['/'][-1].replace('.fits', '.diff.fits')
 
             if subtraction == 'PyZOGY':
 
