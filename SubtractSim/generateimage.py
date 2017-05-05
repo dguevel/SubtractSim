@@ -39,8 +39,7 @@ def implant_transient(flux, image_filename, psf_filename):
     return image + fake_transient
 
 
-def make_fake_image(image, image_psf, reference, reference_psf, flux,
-                    image_mask='None', reference_mask='None'):
+def make_fake_image(image, image_psf, reference, reference_psf, flux):
     """Make an image with a fake transient of given flux as seen in the reference image"""
 
     output_list = ''

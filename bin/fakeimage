@@ -35,11 +35,9 @@ else:
     image_file = open(args.image_list, 'r')
     os.system('rm images.txt')
     for line in image_file:
-        image, image_psf, image_mask, reference, reference_psf, reference_mask, flux = line[:-1].split()
+        image, image_psf, reference, reference_psf, flux = line[:-1].split()
         SubtractSim.generateimage.make_fake_image(image,
                                                   image_psf,
                                                   reference,
                                                   reference_psf,
-                                                  float(flux),
-                                                  image_mask=image_mask,
-                                                  reference_mask=reference_mask)
+                                                  float(flux))
