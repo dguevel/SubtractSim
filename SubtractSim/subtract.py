@@ -46,8 +46,10 @@ def subtract_images(image_list, subtraction_type):
             files = image[:-1].split()
             science_image = files[0]
             science_psf = files[1]
-            reference_image = files[2]
-            reference_psf = files[3]
+            science_mask = files[2]
+            reference_image = files[3]
+            reference_psf = files[4]
+            reference_mask = files[5]
 
             output = science_image.split('/')[-1].replace('.fits', '.diff.fits')
 
@@ -61,6 +63,8 @@ def subtract_images(image_list, subtraction_type):
                                 n_stamps=10,
                                 science_saturation=50000,
                                 reference_saturation=50000,
+                                science_mask=science_mask,
+                                reference_mask=reference_mask,
                                 normalization='science',
                                 photometry=True,
                                 matched_filter=False)
