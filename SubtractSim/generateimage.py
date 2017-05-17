@@ -50,14 +50,16 @@ def make_fake_image(image, image_psf, reference, reference_psf, flux):
     fake_image = implant_transient(flux, image, image_psf)
 
     output_file = image.replace('.fits', '.{0}.fake.fits'.format(int(flux)))
-    image_list = [output_file, image_psf, reference, reference_psf]
+    image_mask = image_psf.replace('psf', 'mask')
+    reference_mask = reference_psf.replace('psf', 'mask')
+    image_list = [output_file, image_psf, image_mask, reference, reference_psf, reference_mask]
 
     hdu = fits.open(image)
 
     hdu[0].data = fake_image
     hdu.writeto(output_file, overwrite=True, output_verify='warn')
 
-    output_list += '{0} {1} {2} {3}\n'.format(*image_list)
+    output_list += '{0} {1} {2} {3} {4} {5}\n'.format(*image_list)
 
 
     file = open('images.txt', 'a')
